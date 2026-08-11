@@ -44,6 +44,7 @@ namespace CsitWebDemo.Controllers
             return View(students);
 
         }
+        [HttpGet] //default http method is get 
         public IActionResult CreateStudent()
         {
             return View();
@@ -132,6 +133,42 @@ namespace CsitWebDemo.Controllers
             command.ExecuteNonQuery();
             connection.Close();
 
+            return RedirectToAction("SelectStudents");
+        }
+        public IActionResult EditStudent(int id)
+        {
+            List<StudentModel> StdModel = new List<StudentModel>();
+            string connectionString = @"Data Source=(localdb)\ProjectModels;Initial Catalog=BMC;Integrated Security=True;Connect Timeout=30;Encrypt=True;Trust Server Certificate=False;Application Intent=ReadWrite;Multi Subnet Failover=False;Command Timeout=30";
+            SqlConnection connection = new SqlConnection(connectionString);
+            connection.Open();
+            string sqlCommand = "SELECT Id,Name, Age, Email,College FROM Student ";
+            SqlCommand command = new SqlCommand(sqlCommand, connection);
+            SqlDataReader SR = command.ExecuteReader();
+            while (SR.Read())
+            {
+                StudentModel std = new StudentModel();
+                std.Id = Convert.ToInt32(SR["Id"]);
+                std.Age = Convert.ToInt32(SR["Age"]);
+                std.Name = Convert.ToString(SR["Name"]) ?? "";
+                std.Email = Convert.ToString(SR["Email"]) ?? "";
+                std.College = Convert.ToString(SR["College"]) ?? "";
+
+                StdModel.Add(std);
+            }
+
+
+            return View(StdModel.Where(x=>x.Id==id).FirstOrDefault());
+        }
+        [HttpPost]
+        public IActionResult EditStudent(StudentModel student)
+        {
+            string connectionString = @"Data Source=(localdb)\ProjectModels;Initial Catalog=BMC;Integrated Security=True;Connect Timeout=30;Encrypt=True;Trust Server Certificate=False;Application Intent=ReadWrite;Multi Subnet Failover=False;Command Timeout=30";
+            SqlConnection connection = new SqlConnection(connectionString);
+            connection.Open();
+            string sqlCommand = string.Format("UPDATE Student SET Name = '{0}',Age = {1},Email = '{2}',College='{3}' WHERE Id = {4}",student.Name,student.Age,student.Email,student.College,student.Id);
+            SqlCommand command = new SqlCommand(sqlCommand, connection);
+            command.ExecuteNonQuery();
+            connection.Close();
             return RedirectToAction("SelectStudents");
         }
     }
